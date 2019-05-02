@@ -43,6 +43,8 @@
     "express": "^4.16.4",
     "express-session": "^1.15.1",
     "history": "^4.9.0",
+    "iframe-api": "^0.10.0",
+    "iframe2image": "^0.2.1",
     "morgan": "^1.9.1",
     "passport": "^0.4.0",
     "passport-google-oauth": "^2.0.0",
@@ -59,7 +61,8 @@
     "redux-thunk": "^2.3.0",
     "sequelize": "^5.3.1",
     "socket.io": "^2.2.0",
-    "video-snapshot": "^1.0.3"
+    "video-snapshot": "^1.0.3",
+    "yt-player": "^3.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.4.3",

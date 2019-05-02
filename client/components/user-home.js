@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {connect} from 'react-redux'
 import YouTubePlayer from 'react-player/lib/players/YouTube'
-import captureVideoFrame from 'capture-video-frame'
+import {YT} from 'iframe-api'
 // import {captureVideoFrame} from '../utils/capture'
 
 /**
@@ -15,7 +15,8 @@ class UserHome extends Component {
     super(props)
     this.state = {
       playing: true,
-      image: null
+      image: null,
+      done: false
     }
     this.onCapture = this.onCapture.bind(this)
   }
@@ -76,25 +77,42 @@ class UserHome extends Component {
     this.player = youtube
   }
 
+  onYoutubeIframeApiReady = () => {
+    this.setState({
+      player: new YT.Player('player', {
+        height: '390',
+        width: '640',
+        videoId: 'z5F1a7_dsrs',
+        events: {
+          onReady: this.onPlayerReady,
+          onStateChange: this.onPlayerStateChange
+        }
+      })
+    })
+  }
+
+  onPlayerReady = event => {
+    event.target.playVideo()
+  }
+
+  onPlayerStateChange = event => {
+    if (event.data === YT.PlayerState.PLAYING && !this.state.setTimeoutdone) {
+      setTimeout(this.stopVideo, 6000)
+      this.setState({done: true})
+    }
+  }
+
+  stopVideo = () => {
+    this.state.player.stopVideo()
+  }
+
   render() {
-    let player = null
     return (
       <div>
         <canvas id="canvas" />
-        <YouTubePlayer
-          url="https://www.youtube.com/watch?v=z5F1a7_dsrs&&origin=localhost8080"
-          playing={this.state.playing}
-          ref={this.ref}
-          config={{
-            file: {
-              attributes: {
-                crossorigin: 'anonymous'
-              }
-            }
-          }}
-          controls
-        />
-        <button
+        {this.onYoutubeIframeApiReady};
+        {this.state.player}
+        {/* <button
           type="button"
           onClick={() => {
             const frame = captureVideoFrame(
@@ -106,7 +124,7 @@ class UserHome extends Component {
         >
           {' '}
           Capture{' '}
-        </button>
+        </button> */}
         {this.state.image && <img src={this.state.image} width="320px" />}
       </div>
     )
