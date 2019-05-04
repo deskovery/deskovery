@@ -5,16 +5,15 @@ const http = require('http')
 const youtubedl = require('@microlink/youtube-dl')
 const fs = require('fs')
 
-// fs.mkdir('videos')
-// fs.mkdirSync('videos')
-
 router.use(cors())
+// Allows us to make Cross-origin requests.
 
 router.use(function(req, res, next) {
   res.set('Access-Control-Allow-Origin', '*')
   res.set('Access-Control-Expose-Headers', 'Content-Length')
   next()
 })
+// Sets our cross-origin headers.
 
 function queryToJson(queryString) {
   let res = {}
@@ -30,6 +29,7 @@ function queryToJson(queryString) {
   }
   return res
 }
+// Parses the initial query from Youtube's Get Video Info and isolates key-value pairs.
 
 function urlParse(data) {
   let tmp = data.adaptive_fmts
@@ -55,6 +55,7 @@ function urlParse(data) {
   data.title = data.title.replace(/\+/g, ' ')
   return data
 }
+// Isolates URL and file type info from the key-value translated JSON object above.
 
 router.get('/', async (req, res, next) => {
   console.log('GET ROUTE!!')
@@ -78,6 +79,7 @@ router.get('/', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
   const id = 'deWeERCVc2o'
+  // Will eventually be passed dyanamically to the user.
   try {
     const response = await fetch(
       `http://www.youtube.com/get_video_info?html5=1&video_id=${id}`
@@ -89,15 +91,13 @@ router.post('/', async (req, res, next) => {
 
     const withUrls = urlParse(parsedData)
     let isolatedUrl = withUrls.videos[2].url
+    //Isolates one medium quality URL for download.
 
-    var video = youtubedl(
-      isolatedUrl
-      // // Optional arguments passed to youtube-dl.
-      // ['--format=18'],
-      // // Additional options can be given for calling `child_process.execFile()`.
-      // {cwd: __dirname}
-    )
+    const video = await youtubedl(isolatedUrl)
+    //Downloads file.
+
     console.log('URL:', isolatedUrl)
+
     // Will be called when the download starts.
     video.on('info', function(info) {
       console.log('Download started')
@@ -105,27 +105,30 @@ router.post('/', async (req, res, next) => {
       console.log('size: ' + info.size)
     })
 
-    //fs.createReadStream('somepath/somefile').pipe(fs.createWriteStream('file.js'));
-
     const videoFile = await video.pipe(
-      fs.createWriteStream(`./testing2-${id}.mp4`)
+      fs.createWriteStream(`./public/${id}-${Date.now()}.mp4`)
     )
+    // Writes video to our desired filepath.
 
-    // const videoFile = fs
-    //   .createReadStream('../../public')
-    //   .pipe(`testing-${id}.mp4`)
+    const fileDownloadPromise = new Promise((resolve, reject) => {
+      video.on('end', () => {
+        console.log('video download HAS FINISHED')
+        resolve()
+      })
 
-    console.log('VIDEO FILE', videoFile)
-    //res.send(videoFile)
-    // res.writeHead(200, {
-    //   'Content-Type': 'video/mp4',
-    //   'Content-Disposition': `attachment; filename=${id}.mp4`
-    //   //'Content-Length': videoFile.legnth
-    // })
+      video.on('error', error => {
+        console.log('video download ERRORED', error)
+        reject(error)
+      })
+    })
+    // Manual promise to prevent our API call from returning before download is complete.
+
+    await fileDownloadPromise
+    // Specifies that response can not run until promise returns resolve or reject.
+
     res.send(videoFile)
-    // res.json(withUrls.videos[0].url)
-  } catch (e) {
-    next(e)
+  } catch (error) {
+    next(error)
   }
 })
 
