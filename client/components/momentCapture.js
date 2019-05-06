@@ -20,6 +20,7 @@ export class Capture extends Component {
 
     this.makeGif = this.makeGif.bind(this)
     this.handleChange = this.handleChange.bind(this)
+    this.takeSnapshot = this.takeSnapshot.bind(this)
   }
 
   async componentDidMount() {
@@ -64,6 +65,7 @@ export class Capture extends Component {
     )
   }
 
+  takeSnapshot() {}
   // async makeGif() {
   //   let res = await axios.post('api/videos/gif', this.state.videoSrc)
 
@@ -153,7 +155,7 @@ export class Capture extends Component {
           onChange={this.handleChange}
         />
         <select name="gifTextColor" onChange={this.handleChange}>
-          <option value="none">Choose campus: </option>
+          <option value="none">Choose gif text color: </option>
 
           <option value="#00BFFF">Blue</option>
           <option value="#BA55D3">Purple</option>
